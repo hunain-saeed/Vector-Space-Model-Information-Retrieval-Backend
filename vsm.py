@@ -68,10 +68,10 @@ def readFilesAndLemmatize():
 
     # making inverted index and positional index
     creatPositionalIndex()
-    # print(dic)
 
 # Positional index creation
 def creatPositionalIndex():
+    global tf
     for docid in dic.keys():
         for position, word in enumerate(dic[docid]):
             if word in swl:
@@ -93,10 +93,9 @@ def creatPositionalIndex():
             # append position
             pindex[word][docid].append(position)
             tf[word][docid] += 1
-    
-    func()
 
 def creattfidf():
+    global tf
     totalDoc = len(docid)
     for word in tf.keys():
         idf = math.log10(tf[word]["df"])/totalDoc
@@ -109,12 +108,56 @@ def creattfidf():
             else:
                 tfidf[i].append(0)
 
+# Write positional indexes to file
+def WritePIndexesToFile():
+    piFile = open('PositionalIndex.json', 'w', encoding='utf8')
+    piFile.write(json.dumps(pindex))
+    piFile.close()
+
+# Write tfIdf indexes to file
+def WriteTfIdfToFile():
+    tfidfFile = open('TfIdf.json', 'w', encoding='utf8')
+    tfidfFile.write(json.dumps(tfidf))
+    tfidfFile.close()
+
+# Reading indexes from their respective file and saving them in global dictionaries
+def ReadIndexesFromFile():
+    global pindex
+    global tfidf
+
+    try:
+        piFile = open('PositionalIndex.json', 'r', encoding='utf8')
+        pindex = json.loads(piFile.read())
+        piFile.close()
+
+        if (not pindex):
+            readFilesAndLemmatize()
+            WritePIndexesToFile()
+
+    except Exception as e:
+        print(e)
+        readFilesAndLemmatize()
+        WritePIndexesToFile()
+
+    try:
+        tfidfFile = open('TfIdf.json', 'r', encoding='utf8')
+        tfidf = json.loads(tfidfFile.read())
+        tfidfFile.close()
+
+        if (not tfidf):
+            creattfidf()
+            WriteTfIdfToFile()
+    except Exception as e:
+        print(e)
+        creattfidf()
+        WriteTfIdfToFile()
 
 
-readStopWord()
-AllFileInDir()
-readFilesAndLemmatize()
-    
+
+def main():
+    readStopWord()
+    AllFileInDir()
+    ReadIndexesFromFile()
 
 def d():
     return json.dumps(tfidf)
