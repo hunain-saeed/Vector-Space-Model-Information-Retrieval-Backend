@@ -1,13 +1,15 @@
 import json
 import os
+import math
 import nltk
 from nltk.stem import WordNetLemmatizer
 
 swl = []
 docid = []
 dic = {}
-p_index = {}
-
+pindex = {}
+tf = {}
+tfidf = {}
 
 # initializing lemmatizer
 lemmatizer = WordNetLemmatizer()
@@ -66,7 +68,7 @@ def readFilesAndLemmatize():
 
     # making inverted index and positional index
     creatPositionalIndex()
-        # print(dic)
+    # print(dic)
 
 # Positional index creation
 def creatPositionalIndex():
@@ -75,35 +77,50 @@ def creatPositionalIndex():
             if word in swl:
                 continue
             # positionIndex(word, docid, position)
-            if word not in p_index:  # if word is not in the positional index then add it also add its doc id
-                p_index[word] = {}
-                p_index[word][docid] = []
+            if word not in pindex:  # if word is not in the positional index then add it also add its doc id
+                pindex[word] = {}
+                pindex[word][docid] = []
+                tf[word] = {}
+                tf[word]["df"] = 1
+                tf[word][docid] = 1
+
             else:  # if doc id is not in the list then append it againt the given word/key
-                if docid not in p_index[word]:
-                    p_index[word][docid] = []
+                if docid not in pindex[word]:
+                    pindex[word][docid] = []
+                    tf[word][docid] = 1
+                    tf[word]["df"] += 1
+                    
             # append position
-            p_index[word][docid].append(position)
+            pindex[word][docid].append(position)
+            tf[word][docid] += 1
+    
+    func()
 
-def creatTfIdf():
-    for docid in dic.keys():
-        for position, word in enumerate(dic[docid]):
-            if word in swl:
-                continue
-            # positionIndex(word, docid, position)
-            if word not in p_index:  # if word is not in the positional index then add it also add its doc id
-                p_index[word] = {}
-                p_index[word][docid] = []
-            else:  # if doc id is not in the list then append it againt the given word/key
-                if docid not in p_index[word]:
-                    p_index[word][docid] = []
-            # if position not in p_index[word][docid]:
-            p_index[word][docid].append(position)
+def creattfidf():
+    totalDoc = len(docid)
+    for word in tf.keys():
+        idf = math.log10(tf[word]["df"])/totalDoc
+        for i in docid:
+            if i not in tfidf.keys():
+                tfidf[i] = []
 
-
-
+            if i in tf[word].keys():
+                tfidf[i].append(tf[word][i]*idf)
+            else:
+                tfidf[i].append(0)
 
 
 
+readStopWord()
+AllFileInDir()
+readFilesAndLemmatize()
+    
 
-def hello_world():
-    return json.dumps({"hello": "hello world"})
+def d():
+    return json.dumps(tfidf)
+
+def p():
+    return json.dumps(pindex)
+
+def t():
+    return json.dumps(tf)

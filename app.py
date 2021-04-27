@@ -11,8 +11,9 @@ CORS(app)
 def index():
     return "Hello, World"
 
-app.add_url_rule('/h', view_func=vsm.hello_world)
-
+app.add_url_rule('/d', view_func=vsm.d)
+app.add_url_rule('/p', view_func=vsm.p)
+app.add_url_rule('/t', view_func=vsm.t)
 
 if __name__ == "__main__":
     app.run(debug=True)
