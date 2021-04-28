@@ -8,7 +8,6 @@ swl = []
 docid = []
 dic = {}
 pindex = {}
-tf = {}
 tfidf = {}
 
 # initializing lemmatizer
@@ -71,7 +70,6 @@ def readFilesAndLemmatize():
 
 # Positional index creation
 def creatPositionalIndex():
-    global tf
     for docid in dic.keys():
         for position, word in enumerate(dic[docid]):
             if word in swl:
@@ -80,35 +78,25 @@ def creatPositionalIndex():
             if word not in pindex:  # if word is not in the positional index then add it also add its doc id
                 pindex[word] = {}
                 pindex[word][docid] = []
-                tf[word] = {}
-                tf[word]["df"] = 1
-                tf[word][docid] = 1
 
             else:  # if doc id is not in the list then append it againt the given word/key
                 if docid not in pindex[word]:
                     pindex[word][docid] = []
-                    tf[word][docid] = 1
-                    tf[word]["df"] += 1
                     
             # append position
             pindex[word][docid].append(position)
-            tf[word][docid] += 1
 
-    # File = open('TF.json', 'w', encoding='utf8')
-    # File.write(json.dumps(tf))
-    # File.close()
 
 def creattfidf():
-    global tf
     totalDoc = len(docid)
-    for word in tf.keys():
-        idf = math.log10(tf[word]["df"])/totalDoc
+    for word in pindex.keys():
+        idf = math.log10(len(pindex[word]))/totalDoc
         for i in docid:
             if i not in tfidf.keys():
                 tfidf[i] = []
 
-            if i in tf[word].keys():
-                tfidf[i].append(tf[word][i]*idf)
+            if i in pindex[word].keys():
+                tfidf[i].append(len(pindex[word][i])*idf)
             else:
                 tfidf[i].append(0)
 
@@ -127,13 +115,12 @@ def WriteTfIdfToFile():
 # Reading indexes from their respective file and saving them in global dictionaries
 def ReadIndexesFromFile():
     global pindex
-    global tfidf
 
     try:
         piFile = open('PositionalIndex.json', 'r', encoding='utf8')
         pindex = json.loads(piFile.read())
         piFile.close()
-
+        print("positional index created")
         if (not pindex):
             readFilesAndLemmatize()
             WritePIndexesToFile()
@@ -143,11 +130,16 @@ def ReadIndexesFromFile():
         readFilesAndLemmatize()
         WritePIndexesToFile()
 
+    
+
+def ReadTfidfFile():
+    global tfidf
+
     try:
         tfidfFile = open('TfIdf.json', 'r', encoding='utf8')
         tfidf = json.loads(tfidfFile.read())
         tfidfFile.close()
-
+        print("tfidf index created")
         if (not tfidf):
             creattfidf()
             WriteTfIdfToFile()
@@ -157,17 +149,14 @@ def ReadIndexesFromFile():
         WriteTfIdfToFile()
 
 
-
 def main():
     readStopWord()
     AllFileInDir()
     ReadIndexesFromFile()
+    ReadTfidfFile()
 
 def d():
     return json.dumps(tfidf)
 
 def p():
     return json.dumps(pindex)
-
-def t():
-    return json.dumps(tf)
