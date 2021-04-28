@@ -94,6 +94,10 @@ def creatPositionalIndex():
             pindex[word][docid].append(position)
             tf[word][docid] += 1
 
+    # File = open('TF.json', 'w', encoding='utf8')
+    # File.write(json.dumps(tf))
+    # File.close()
+
 def creattfidf():
     global tf
     totalDoc = len(docid)
