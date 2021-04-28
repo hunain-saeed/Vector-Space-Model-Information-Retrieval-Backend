@@ -146,8 +146,3 @@ def main():
     ReadIndexesFromFile()
     return "hello"
 
-def d():
-    return json.dumps(tfidf)
-
-def p():
-    return json.dumps(pindex)
