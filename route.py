@@ -1,7 +1,11 @@
 import vsm
 import json
 import math
-from flask import request 
+import numpy as np
+from flask import request
+
+
+
 
 # ROUTE
 def d():
@@ -13,17 +17,22 @@ def p():
 
 # ROUTE
 def w():
-    return json.dumps(vsm.wordList)
+    return json.dumps(vsm.magnitude)
+
 
 # ROUTE
 def queryType():
-    query = request.args["q"]
-    alpha = request.args["a"]
+    data = json.loads(request.data)
+    query = data["query"]
+    alpha = data["alpha"]
 
-    print(alpha)
-    result = {}
     # result = {"result": [], "error": ""}
-    result["result"] = preProcessQuery(query)
+    result = {}
+    queryVec = preProcessQuery(query)
+    
+    result["result"] = cosineSim(queryVec, alpha)
+
+
     # return json.dumps({"result": [], "error": "Invalid Query"})
     return json.dumps(result)
 
@@ -32,7 +41,6 @@ def queryType():
 # Calculate tf of query
 # Calculate tf-idf of query vector
 def preProcessQuery(query):
-    
     query = vsm.removePunctuation(query).split()
     query = [vsm.lemmatizer.lemmatize(word) if word not in vsm.swl else word for word in query]
     queryVec, windex = queryToVector(query)
@@ -48,7 +56,8 @@ def preProcessQuery(query):
     
     return queryVec
 
-
+# Convert query into vector
+# Calculate tf of words
 def queryToVector(query):
     qVector = [0] * len(vsm.wordList)
     windex = {}
@@ -62,4 +71,22 @@ def queryToVector(query):
     return qVector, windex
 
 
+def cosineSim(queryVec, alpha):
+    resultDoc = []
+    qmeg = np.linalg.norm(queryVec)
 
+    
+    for docid in vsm.tfidf.keys():
+        ans = 0.0
+        # dot1 = np.dot(vsm.tfidf[docid], queryVec)
+        # print(type(dot1))
+
+        mg = float((vsm.magnitude[int(docid)-1] * qmeg))
+        
+        for i in range(len(queryVec)):
+            ans += queryVec[i] * vsm.tfidf[docid][i]
+        
+
+        resultDoc.append(ans/mg)
+
+    return resultDoc

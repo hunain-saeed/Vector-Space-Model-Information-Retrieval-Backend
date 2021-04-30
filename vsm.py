@@ -2,6 +2,7 @@ import json
 import os
 import math
 import nltk
+import numpy as np
 from nltk.stem import WordNetLemmatizer
 
 swl = []
@@ -9,6 +10,7 @@ docid = []
 wordList = []
 pindex = {}
 tfidf = {}
+magnitude = []
 
 # initializing lemmatizer
 lemmatizer = WordNetLemmatizer()
@@ -144,6 +146,12 @@ def main():
     readStopWord()
     AllFileInDir()
     ReadIndexesFromFile()
+    
     wordList = list(pindex.keys())
-    return "hello"
+
+    # calculating magnitude
+    for vec in tfidf.keys():
+        magnitude.append(np.linalg.norm(tfidf[vec]))
+
+
 
