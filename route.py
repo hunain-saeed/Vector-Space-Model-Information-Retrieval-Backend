@@ -5,8 +5,6 @@ import numpy as np
 from flask import request
 
 
-
-
 # ROUTE
 def d():
     return json.dumps(vsm.tfidf)
@@ -22,22 +20,19 @@ def w():
 
 # ROUTE
 def queryType():
-    try:
-        data = json.loads(request.data)
-        query = data["query"]
-        alpha = data["alpha"]
+    data = json.loads(request.data)
+    query = data["query"]
+    alpha = float(data["alpha"])
 
-        # result = {"result": [], "error": ""}
-        result = {}
-        queryVec = preProcessQuery(query)
-        
-        result["result"] = cosineSim(queryVec)
-
-        return json.dumps(result)
-    except Exception as e:
-        print(e)
-        return json.dumps({"result": [], "error": "Invalid Query"})
+    # result = {"result": [], "error": ""}
+    result = {}
+    queryVec = preProcessQuery(query)
     
+    result["result"] = ranked(queryVec, alpha)
+    result["len"] = len(result["result"])
+
+    # return json.dumps({"result": [], "error": "Invalid Query"})
+    return json.dumps(result)
 
 # Remove punctuation and convert into list
 # Lemmatize query
@@ -73,19 +68,28 @@ def queryToVector(query):
             print(e)
     return qVector, windex
 
+def ranked(queryVec, alpha):
+    sim = cosineSim(queryVec, alpha)
+    z = [x for _,x in sorted(zip(list(sim.values()), list(sim.keys())), reverse=True)]
 
-def cosineSim(queryVec):
-    simDocQ = []
+    return z
+
+
+def cosineSim(queryVec, alpha):
+    simDocQ = {}
     qmeg = np.linalg.norm(queryVec)
     
     for docid in vsm.tfidf.keys():
         ans = 0.0
 
         mg = float((vsm.magnitude[int(docid)-1] * qmeg))
-        
+        # Replace with numpy multiplication
         for i in range(len(queryVec)):
             ans += queryVec[i] * vsm.tfidf[docid][i]
         
-        simDocQ.append(ans/mg)
-    
+        cos = ans/mg
+
+        if cos > alpha:
+            simDocQ[docid] = cos
+
     return simDocQ
