@@ -21,7 +21,7 @@ app.add_url_rule('/query/<query>', view_func=route.queryType)
 
 app.add_url_rule('/d', view_func=route.d)
 app.add_url_rule('/p', view_func=route.p)
-
+app.add_url_rule('/w', view_func=route.w)
 
 
 if __name__ == "__main__":

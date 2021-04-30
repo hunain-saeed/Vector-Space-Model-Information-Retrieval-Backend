@@ -7,7 +7,23 @@ def d():
 def p():
     return json.dumps(vsm.pindex)
 
-def queryType(query):
-    result = {"result": [], "error": ""}
+def w():
+    return json.dumps(vsm.wordList)
 
-    return json.dumps({"result": [], "error": "Invalid Query"})
+def queryToVector(query):
+    lst = [0] * len(vsm.wordList)
+    query = query.split()
+    for word in query:
+        try:
+            lst[vsm.wordList.index(word)] +=1
+        except Exception as e:
+            print(e)
+    return lst
+
+
+def queryType(query):
+    result = {}
+    # result = {"result": [], "error": ""}
+    result["result"] = queryToVector(query)
+    # return json.dumps({"result": [], "error": "Invalid Query"})
+    return json.dumps(result)

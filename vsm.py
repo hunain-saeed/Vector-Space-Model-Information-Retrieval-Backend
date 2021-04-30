@@ -6,7 +6,7 @@ from nltk.stem import WordNetLemmatizer
 
 swl = []
 docid = []
-dic = {}
+wordList = []
 pindex = {}
 tfidf = {}
 
@@ -22,7 +22,7 @@ def readStopWord():
     except Exception as e:
         print(e)
 
-# Find the all file name in the directory, extract docid and store it on docid variable
+# Find the all file name in the directory, extract docid and store it in docid variable
 def AllFileInDir():
     global docid
     # list of file name in the ShortStories dir
@@ -51,12 +51,10 @@ def removePunctuation(words):
 
 # Reads all stories from files one by one and stemm the tokens
 def readFilesAndLemmatize():
+    dic = {}
     for x in docid:
         f = open("ShortStories/"+str(x)+".txt", 'r',
                 encoding='utf8')    # read file one by one
-        
-        # title is used to read the first line of doc
-        # title[x] = f.readline().replace(" \n", "").replace("\n", "")
 
         f = f.read()
         # casefolding and removing punctuations and tokenize (words list)
@@ -66,10 +64,11 @@ def readFilesAndLemmatize():
         dic[x] = [lemmatizer.lemmatize(word) if word not in swl else word for word in f]
 
     # making inverted index and positional index
-    creatPositionalIndex()
+    creatPositionalIndex(dic)
+    
 
 # Positional index creation
-def creatPositionalIndex():
+def creatPositionalIndex(dic):
     for docid in dic.keys():
         for position, word in enumerate(dic[docid]):
             if word in swl:
@@ -141,8 +140,10 @@ def ReadIndexesFromFile():
         
 
 def main():
+    global wordList
     readStopWord()
     AllFileInDir()
     ReadIndexesFromFile()
+    wordList = list(pindex.keys())
     return "hello"
 
