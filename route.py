@@ -22,19 +22,22 @@ def w():
 
 # ROUTE
 def queryType():
-    data = json.loads(request.data)
-    query = data["query"]
-    alpha = data["alpha"]
+    try:
+        data = json.loads(request.data)
+        query = data["query"]
+        alpha = data["alpha"]
 
-    # result = {"result": [], "error": ""}
-    result = {}
-    queryVec = preProcessQuery(query)
+        # result = {"result": [], "error": ""}
+        result = {}
+        queryVec = preProcessQuery(query)
+        
+        result["result"] = cosineSim(queryVec)
+
+        return json.dumps(result)
+    except Exception as e:
+        print(e)
+        return json.dumps({"result": [], "error": "Invalid Query"})
     
-    result["result"] = cosineSim(queryVec, alpha)
-
-
-    # return json.dumps({"result": [], "error": "Invalid Query"})
-    return json.dumps(result)
 
 # Remove punctuation and convert into list
 # Lemmatize query
@@ -71,22 +74,18 @@ def queryToVector(query):
     return qVector, windex
 
 
-def cosineSim(queryVec, alpha):
-    resultDoc = []
+def cosineSim(queryVec):
+    simDocQ = []
     qmeg = np.linalg.norm(queryVec)
-
     
     for docid in vsm.tfidf.keys():
         ans = 0.0
-        # dot1 = np.dot(vsm.tfidf[docid], queryVec)
-        # print(type(dot1))
 
         mg = float((vsm.magnitude[int(docid)-1] * qmeg))
         
         for i in range(len(queryVec)):
             ans += queryVec[i] * vsm.tfidf[docid][i]
         
-
-        resultDoc.append(ans/mg)
-
-    return resultDoc
+        simDocQ.append(ans/mg)
+    
+    return simDocQ
