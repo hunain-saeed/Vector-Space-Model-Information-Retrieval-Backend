@@ -1,6 +1,7 @@
 import vsm
 import json
 import math
+from flask import request 
 
 # ROUTE
 def d():
@@ -15,7 +16,11 @@ def w():
     return json.dumps(vsm.wordList)
 
 # ROUTE
-def queryType(query):
+def queryType():
+    query = request.args["q"]
+    alpha = request.args["a"]
+
+    print(alpha)
     result = {}
     # result = {"result": [], "error": ""}
     result["result"] = preProcessQuery(query)
@@ -27,6 +32,7 @@ def queryType(query):
 # Calculate tf of query
 # Calculate tf-idf of query vector
 def preProcessQuery(query):
+    
     query = vsm.removePunctuation(query).split()
     query = [vsm.lemmatizer.lemmatize(word) if word not in vsm.swl else word for word in query]
     queryVec, windex = queryToVector(query)
