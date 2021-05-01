@@ -17,8 +17,6 @@ def index():
 # app.add_url_rule('/c', view_func=vsm.main)
 app.add_url_rule('/query', view_func=route.queryType)
 
-# app.add_url_rule('/test', view_func=route.test, methods=['POST'])
-
 
 app.add_url_rule('/d', view_func=route.d)
 app.add_url_rule('/p', view_func=route.p)

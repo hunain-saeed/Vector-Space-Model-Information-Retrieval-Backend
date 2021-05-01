@@ -20,19 +20,26 @@ def w():
 
 # ROUTE
 def queryType():
-    data = json.loads(request.data)
-    query = data["query"]
-    alpha = float(data["alpha"])
+    try:
+        data = json.loads(request.data)
+        query = data["query"]
+        alpha = float(data["alpha"])
 
-    # result = {"result": [], "error": ""}
-    result = {}
-    queryVec = preProcessQuery(query)
-    
-    result["result"] = ranked(queryVec, alpha)
-    result["len"] = len(result["result"])
+        result = {}
 
-    # return json.dumps({"result": [], "error": "Invalid Query"})
-    return json.dumps(result)
+        queryVec = preProcessQuery(query)
+        
+        result["result"], result["score"] = ranked(queryVec, alpha)
+        result["len"] = len(result["result"])
+
+        if result["len"] == 0:
+            result["error"] = "No Document Found"
+            return json.dumps(result)
+        
+        return json.dumps(result)
+    except Exception as e:
+        print(e)
+        return json.dumps({"result": [], "error": "Invalid Query"})
 
 # Remove punctuation and convert into list
 # Lemmatize query
@@ -48,7 +55,7 @@ def preProcessQuery(query):
     for word in windex.keys():
         try:
             idf = math.log10(len(vsm.pindex[word]))/totalDoc
-            queryVec[windex[word]] *= idf
+            queryVec[windex[word]] = round( queryVec[windex[word]] * idf, 6 )
         except Exception as e:
             print(e)
     
@@ -70,10 +77,10 @@ def queryToVector(query):
 
 def ranked(queryVec, alpha):
     sim = cosineSim(queryVec, alpha)
-    z = [x for _,x in sorted(zip(list(sim.values()), list(sim.keys())), reverse=True)]
-
-    return z
-
+    z = sorted(zip(list(sim.values()), list(sim.keys())), reverse=True)
+    rank = [i for _,i in z]
+    score = [_ for _, i in z]
+    return rank, score
 
 def cosineSim(queryVec, alpha):
     simDocQ = {}
@@ -87,7 +94,7 @@ def cosineSim(queryVec, alpha):
         for i in range(len(queryVec)):
             ans += queryVec[i] * vsm.tfidf[docid][i]
         
-        cos = ans/mg
+        cos = round(ans/mg, 6)
 
         if cos > alpha:
             simDocQ[docid] = cos

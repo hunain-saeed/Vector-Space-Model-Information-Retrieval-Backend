@@ -99,7 +99,7 @@ def creattfidf():
                 tfidf[i] = []
 
             if i in pindex[word].keys():
-                tfidf[i].append(len(pindex[word][i])*idf)
+                tfidf[i].append( round( len( pindex[word][i] ) * idf, 6 ) )
             else:
                 tfidf[i].append(0)
 
