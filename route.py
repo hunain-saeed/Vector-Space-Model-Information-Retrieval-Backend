@@ -11,7 +11,7 @@ def d():
 
 #  ROUTE
 def p():
-    return json.dumps(vsm.pindex)
+    return json.dumps(vsm.wdf)
 
 # ROUTE
 def w():
@@ -51,32 +51,18 @@ def queryType():
 def preProcessQuery(query):
     query = vsm.removePunctuation(query).split()
     query = [vsm.lemmatizer.lemmatize(word) if word not in vsm.swl else word for word in query]
-    queryVec, windex = queryToVector(query)
-
-    totalDoc = len(vsm.docid)
-    # Calculating tf-idf for queryVec
-    for word in windex.keys():
-        try:
-            idf = math.log10(len(vsm.pindex[word]))/totalDoc
-            queryVec[windex[word]] = round( queryVec[windex[word]] * idf, 6 )
-        except Exception as e:
-            print(e)
-    
-    return queryVec
+    return queryToVector(query)
 
 # Convert query into vector
 # Calculate tf of words
 def queryToVector(query):
-    qVector = [0] * len(vsm.wordList)
-    windex = {}
-    for word in query:
-        try:
-            index = vsm.wordList.index(word)
-            qVector[index] +=1
-            windex[word] = index
-        except Exception as e:
-            print(e)
-    return qVector, windex
+    qVector = []
+    totalDoc = len(vsm.docid)
+    for word in vsm.wdf.keys():
+        tfidf = (math.log10(vsm.wdf[word]["df"])/totalDoc) * query.count(word)
+        qVector.append(round( tfidf, 6 ))
+    
+    return qVector
 
 def ranked(queryVec, alpha):
     sim = cosineSim(queryVec, alpha)

@@ -7,8 +7,7 @@ from nltk.stem import WordNetLemmatizer
 
 swl = []
 docid = []
-wordList = []
-pindex = {}
+wdf = {}
 tfidf = {}
 magnitude = []
 
@@ -66,48 +65,49 @@ def readFilesAndLemmatize():
         dic[x] = [lemmatizer.lemmatize(word) if word not in swl else word for word in f]
 
     # making inverted index and positional index
-    creatPositionalIndex(dic)
+    creatTfDf(dic)
     
 
 # Positional index creation
-def creatPositionalIndex(dic):
+def creatTfDf(dic):
     for docid in dic.keys():
-        for position, word in enumerate(dic[docid]):
+        for word in dic[docid]:
             if word in swl:
                 continue
-            # positionIndex(word, docid, position)
-            if word not in pindex:  # if word is not in the positional index then add it also add its doc id
-                pindex[word] = {}
-                pindex[word][docid] = []
+            if word not in wdf:  # if word is not in the positional index then add it also add its doc id
+                wdf[word] = {}
+                wdf[word]["df"] = 1
+                wdf[word][docid] = 0
 
             else:  # if doc id is not in the list then append it againt the given word/key
-                if docid not in pindex[word]:
-                    pindex[word][docid] = []
+                if docid not in wdf[word]:
+                    wdf[word][docid] = 0
+                    wdf[word]["df"] += 1
                     
             # append position
-            pindex[word][docid].append(position)
+            wdf[word][docid] += 1
 
 
 def creattfidf():
     global tfidf
     totalDoc = len(docid)
 
-    for word in pindex.keys():
-        idf = math.log10(len(pindex[word]))/totalDoc
+    for word in wdf.keys():
+        idf = math.log10(wdf[word]["df"])/totalDoc
         for i in docid:
             if i not in tfidf.keys():
                 tfidf[i] = []
 
-            if i in pindex[word].keys():
-                tfidf[i].append( round( len( pindex[word][i] ) * idf, 6 ) )
+            if i in wdf[word].keys():
+                tfidf[i].append( round( wdf[word][i] * idf, 6 ) )
             else:
                 tfidf[i].append(0)
 
 
 # Write positional indexes to file
 def WriteIndexesToFile():
-    piFile = open('PositionalIndex.json', 'w', encoding='utf8')
-    piFile.write(json.dumps(pindex))
+    piFile = open('TfDf.json', 'w', encoding='utf8')
+    piFile.write(json.dumps(wdf))
     piFile.close()
 
     tfidfFile = open('TfIdf.json', 'w', encoding='utf8')
@@ -116,20 +116,20 @@ def WriteIndexesToFile():
 
 # Reading indexes from their respective file and saving them in global dictionaries
 def ReadIndexesFromFile():
-    global pindex
+    global wdf
     global tfidf
 
     try:
-        piFile = open('PositionalIndex.json', 'r', encoding='utf8')
+        piFile = open('TfDf.json', 'r', encoding='utf8')
         tfidfFile = open('TfIdf.json', 'r', encoding='utf8')
         
-        pindex = json.loads(piFile.read())
+        wdf = json.loads(piFile.read())
         tfidf = json.loads(tfidfFile.read())
         
         piFile.close()
         tfidfFile.close()
 
-        if (not pindex) or (not tfidf):
+        if (not wdf) or (not tfidf):
             readFilesAndLemmatize()
             creattfidf()
             WriteIndexesToFile()
@@ -142,12 +142,9 @@ def ReadIndexesFromFile():
         
 
 def main():
-    global wordList
     readStopWord()
     AllFileInDir()
     ReadIndexesFromFile()
-    
-    wordList = list(pindex.keys())
 
     # calculating magnitude
     for vec in tfidf.keys():
