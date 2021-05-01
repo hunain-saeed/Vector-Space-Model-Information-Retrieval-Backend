@@ -21,11 +21,14 @@ def w():
 # ROUTE
 def queryType():
     try:
+        alpha = 0.005
         data = json.loads(request.data)
-        query = data["query"]
-        alpha = float(data["alpha"])
+        if(data["alpha"] != ''):
+            alpha = float(data["alpha"])
 
-        result = {}
+        query = data["query"]
+        
+        result = {"result": [], "score": [], "len": 0, "error": ""}
 
         queryVec = preProcessQuery(query)
         
@@ -79,6 +82,7 @@ def ranked(queryVec, alpha):
     sim = cosineSim(queryVec, alpha)
     z = sorted(zip(list(sim.values()), list(sim.keys())), reverse=True)
     rank = [i for _,i in z]
+    # rank.sort(key=int)
     score = [_ for _, i in z]
     return rank, score
 
