@@ -21,16 +21,16 @@ def w():
 # ROUTE
 def queryType():
     try:
-        alpha = 0.005
+        alpha = 0.005                           # default alpha
         data = json.loads(request.data)
         if(data["alpha"] != ''):
-            alpha = float(data["alpha"])
+            alpha = float(data["alpha"])        # if user enter the alpha value
 
-        query = data["query"]
+        query = data["query"]                   # extracting query form data
         
         result = {"result": [], "score": [], "len": 0, "error": ""}
 
-        queryVec = preProcessQuery(query)
+        queryVec = preProcessQuery(query)       # process the query and convert it to vector
         
         result["result"], result["score"] = ranked(queryVec, alpha)
         result["len"] = len(result["result"])
@@ -58,12 +58,14 @@ def preProcessQuery(query):
 def queryToVector(query):
     qVector = []
     totalDoc = len(vsm.docid)
+    
     for word in vsm.wdf.keys():
         tfidf = (math.log10(vsm.wdf[word]["df"])/totalDoc) * query.count(word)
         qVector.append(round( tfidf, 6 ))
     
     return qVector
 
+# Ranking the filterd documents acc to their sim score
 def ranked(queryVec, alpha):
     sim = cosineSim(queryVec, alpha)
     z = sorted(zip(list(sim.values()), list(sim.keys())), reverse=True)
@@ -72,6 +74,9 @@ def ranked(queryVec, alpha):
     score = [_ for _, i in z]
     return rank, score
 
+
+# Calculating cosine similarity between each docs and query doc
+# and filtering the documents on the bases of Alpha score
 def cosineSim(queryVec, alpha):
     simDocQ = {}
     qmeg = np.linalg.norm(queryVec)

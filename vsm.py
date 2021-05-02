@@ -66,9 +66,9 @@ def readFilesAndLemmatize():
 
     # making inverted index and positional index
     creatTfDf(dic)
-    
 
-# Positional index creation
+
+# calculating Term freq and Doc freq
 def creatTfDf(dic):
     for docid in dic.keys():
         for word in dic[docid]:
@@ -87,7 +87,7 @@ def creatTfDf(dic):
             # append position
             wdf[word][docid] += 1
 
-
+# Creating tfidf and making vectors
 def creattfidf():
     global tfidf
     totalDoc = len(docid)
@@ -104,7 +104,7 @@ def creattfidf():
                 tfidf[i].append(0)
 
 
-# Write positional indexes to file
+# Write vectors to file
 def WriteIndexesToFile():
     piFile = open('TfDf.json', 'w', encoding='utf8')
     piFile.write(json.dumps(wdf))
@@ -115,6 +115,7 @@ def WriteIndexesToFile():
     tfidfFile.close()
 
 # Reading indexes from their respective file and saving them in global dictionaries
+# If file not find then calculate tfidf and store it into file
 def ReadIndexesFromFile():
     global wdf
     global tfidf
@@ -146,7 +147,7 @@ def main():
     AllFileInDir()
     ReadIndexesFromFile()
 
-    # calculating magnitude
+    # calculating magnitude for each vectors
     for vec in tfidf.keys():
         magnitude.append(np.linalg.norm(tfidf[vec]))
 

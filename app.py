@@ -14,7 +14,7 @@ def index():
     return "Hello, World"
 
 
-# app.add_url_rule('/c', view_func=vsm.main)
+
 app.add_url_rule('/query', view_func=route.queryType, methods=['POST'])
 
 
